@@ -1,69 +1,138 @@
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
+import RegisterForm from "./registerForm";
+import { useState, useEffect } from "react";
+import Modal from "./Modal";
+import axios from "axios";
+
+import BuscaUsuario from "./BuscarUsuario";
 
 type Register = {
-    name: string;
-    email: string;
-    password: string;
-    role: string;
+  Nombre: string;
+  email: string;
+  pass: string;
+  Estatus?: number;
+  rol: string;
+  IdUser?: string;
 }
+
+
 export default function Register() {
-    const { register, handleSubmit, formState: { errors } } = useForm<Register>();
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<Register>();
     const navigate = useNavigate();
+    const [mostrarModal, setMostrarModal] = useState(false);
+    const [usuario, setUsuario] = useState<Register[]>([]);
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<Register | null>(null);
+    const [usuarioEliminado, setUsuarioEliminado] = useState<string | undefined>(undefined);
+
+      const api = axios.create({
+            baseURL: "http://127.0.0.1:8000/",
+          });
+
+useEffect(() => {
+    api.get("/usuarios").then((res) => {
+        console.log(res.data);
+        if (res.status === 200) {
+          setUsuario(res.data);
+        } 
+      })
+      .catch((error) => { 
+        console.error(error);
+      }
+      );
+},[]);  
+
+
+if(usuarioEliminado){
+  alert(`Usuario eliminado ${usuarioEliminado}`);
+  setUsuarioEliminado(undefined);
+}
+
+
+
 
     const onSubmit = (data : Register) => {
         console.log(data);
-        toast.success("Registro exitoso");
-        navigate("/");
+    api.post("/usuarios", data)
+      .then((res) => {
+        console.log(res.data);
+        if (res.status === 200) {
+          toast.success("Registro exitoso");
+          setMostrarModal(false);
+          navigate("/login");
+        } else {
+          toast.error("Error al registrar");
+        }
+      }
+      )
+      .catch((error) => {
+        console.error(error);
+        if (error.response && error.response.status === 400) {
+          toast.error("Error en los datos enviados");
+        } else {
+          toast.error("Error al registrar");
+        }
+      }
+      );    
+       
       };
 
   return (
-    <div className="p-8 max-w-md mx-auto">
-      <h2 className="text-2xl mb-4">Registro de Usuario</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <input
-          type="text"
-          placeholder="Nombre completo"
-          {...register("name", { required: "El nombre es requerido" })}
-          className="border p-2 w-full mb-2"
-        />
-        {errors.name && <p className="text-red-500">{errors.name.message}</p>}
+   <div className="p-8 ml-[200px]">
+    <button
+        className="bg-blue-500 text-white  px-4 py-2 rounded"
+        onClick={() => { 
+          reset();
+          setUsuarioSeleccionado(null);
+          setMostrarModal(true);
+        }}
+      >
+        Agregar Usuario
+      </button>
+      <br />
+      <BuscaUsuario 
+      usuario={usuario} 
+      onSeleccionar={(item)=> setUsuarioSeleccionado(item) } 
+      onEliminar={(id)=>setUsuarioEliminado(id)} 
+      mostrarModal={setMostrarModal}
+      />
+      <br />
 
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          {...register("email", { required: "El correo es requerido" })}
-          className="border p-2 w-full mb-2"
-        />
-        {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+{ mostrarModal &&  (
 
-        <input
-          type="password"
-          placeholder="Contraseña"
-          {...register("password", { required: "La contraseña es requerida" })}
-          className="border p-2 w-full mb-2"
-        />
-        {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+    <Modal title={usuarioSeleccionado ? "Editar Usuario":"Agregar Usuario"} 
+    onClose={() => {
+      reset({
+        Nombre: "",
+        email: "",
+        pass: "",
+        rol: "",
+        Estatus: 1,
+        IdUser: ""
+      });
+      setUsuarioSeleccionado(null); 
+      setMostrarModal(false);}}>
 
-        <select
-          {...register("role", { required: "Selecciona un rol" })}
-          className="border p-2 w-full mb-2"
-        >
-          <option value="">Selecciona un rol</option>
-          <option value="admin">Administrador</option>
-          <option value="user">Usuario Normal</option>
-        </select>
-        {errors.role && <p className="text-red-500">{errors.role.message}</p>}
+   <RegisterForm
+    register={register}
+    handleSubmit={handleSubmit}
+    errors={errors}
+    onSubmit={onSubmit}
+    usuarioSeleccionado={usuarioSeleccionado}
+    reset={reset}
+   
+   />
 
-        <button type="submit" className="bg-green-500 text-white p-2 w-full">
-          Registrarme
-        </button>
-      </form>
+</Modal>
 
-      <p className="mt-4 text-center">
-        ¿Ya tienes cuenta? <Link className="text-blue-600" to="/">Iniciar sesión</Link>
-      </p>
-    </div>
+   )
+}
+
+
+
+
+
+   </div>
   )
 }
