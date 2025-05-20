@@ -4,6 +4,7 @@ import {  useSelector } from "react-redux";
 import { RootState } from "../store";
 import { useDispatch } from "react-redux";
 import { logout } from "../store/slices/authSlice";
+import Carrito from "./Carrito";
 
 
 
@@ -28,7 +29,8 @@ export default function Dashboard() {
     <h2 className="text-3xl mb-4">Bienvenido al Dashboard</h2>
     <p className="mb-6">{ user.email}</p>
     <p className="mb-6">{ user.rol}</p>
-
+   <Carrito user={user.id} />
+   <br />
     <Link className="bg-red-500 text-white p-2" onClick={()=>dispatch(logout())} to="/login">Cerrar sesión</Link>
   </div>
   )

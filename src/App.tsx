@@ -6,6 +6,7 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Layout from "./layouts/Layout";
 import Articulos from "./components/Articulos";
+import Calendario from "./components/Calendario";
 
 
 
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/register" element={<Register />} />
       <Route path="/articulos" element={<Articulos />} />
+      <Route path="/calendario" element={<Calendario />} />
       </Route>
       </Routes>
    </BrowserRouter>

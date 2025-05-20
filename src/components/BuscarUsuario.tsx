@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 
 
@@ -14,11 +16,11 @@ type UsuarioProps = {
 type RegisterProps = {
     usuario: UsuarioProps[];
     onSeleccionar: (usuario: UsuarioProps) => void;
-    onEliminar: (id : string | undefined) => void;
+    fetchUsuario: () => void;
     mostrarModal: (visible: boolean) => void;
 }
 
-export default function BuscaUsuario({usuario, onSeleccionar, onEliminar, mostrarModal} : RegisterProps) {
+export default function BuscaUsuario({usuario, onSeleccionar,fetchUsuario, mostrarModal} : RegisterProps) {
 
     const [buscar, setBuscar] = useState<string>("");
     const [paginaActual, setPaginaActual] = useState(1);
@@ -47,6 +49,27 @@ export default function BuscaUsuario({usuario, onSeleccionar, onEliminar, mostra
     setPaginaActual(1);
   }, [buscar]);
 
+  const api = axios.create({
+    baseURL: "http://127.0.0.1:8000/",
+  });
+
+  const onEliminar = (id: string | undefined) => {
+    
+      //alert(`Usuario eliminado ${usuarioEliminado}`);
+     
+      api.delete(`/usuarios/${id}`)
+      .then((res) => {
+        console.log(res.data);
+        if (res.status === 200) {
+          toast.success("Usuario eliminado");
+          fetchUsuario();
+          
+        } else {
+          toast.error("Error al eliminar");
+        }
+      })
+    }
+  
   return (
     <div className="bg-gray-200  rounded-2xl shadow-2xl">
         <br />

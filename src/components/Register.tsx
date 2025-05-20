@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { useNavigate} from "react-router-dom";
-import RegisterForm from "./registerForm";
+//mport { useNavigate} from "react-router-dom";
+import RegisterForm from "./RegisterForm";
 import { useState, useEffect } from "react";
 import Modal from "./Modal";
 import axios from "axios";
@@ -20,17 +20,19 @@ type Register = {
 
 export default function Register() {
     const { register, handleSubmit, reset, formState: { errors } } = useForm<Register>();
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     const [mostrarModal, setMostrarModal] = useState(false);
     const [usuario, setUsuario] = useState<Register[]>([]);
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<Register | null>(null);
-    const [usuarioEliminado, setUsuarioEliminado] = useState<string | undefined>(undefined);
+    
 
       const api = axios.create({
             baseURL: "http://127.0.0.1:8000/",
           });
 
-useEffect(() => {
+
+
+const fetchUsuario = () => {
     api.get("/usuarios").then((res) => {
         console.log(res.data);
         if (res.status === 200) {
@@ -41,18 +43,52 @@ useEffect(() => {
         console.error(error);
       }
       );
+}
+
+useEffect(() => {
+  fetchUsuario();
 },[]);  
 
 
-if(usuarioEliminado){
-  alert(`Usuario eliminado ${usuarioEliminado}`);
-  setUsuarioEliminado(undefined);
-}
 
 
 
 
     const onSubmit = (data : Register) => {
+    if (usuarioSeleccionado) {
+      console.log(usuarioSeleccionado);
+      api.put(`/usuarios/${usuarioSeleccionado.IdUser}`, data)
+        .then((res) => {
+          console.log(res.data);
+          if (res.status === 200) {
+            toast.success("Usuario actualizado");
+            setMostrarModal(false);
+            setUsuarioSeleccionado(null);
+            fetchUsuario();
+            reset({
+        Nombre: "",
+        email: "",
+        pass: "",
+        rol: "",
+        Estatus: 1,
+        IdUser: ""
+      });
+          } else {
+            toast.error("Error al actualizar");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          if (error.response && error.response.status === 400) {
+            toast.error("Error en los datos enviados");
+          } else {
+            toast.error("Error al actualizar");
+          }
+        }); 
+
+
+      
+    }else{  
         console.log(data);
     api.post("/usuarios", data)
       .then((res) => {
@@ -60,7 +96,15 @@ if(usuarioEliminado){
         if (res.status === 200) {
           toast.success("Registro exitoso");
           setMostrarModal(false);
-          navigate("/login");
+          fetchUsuario();
+           reset({
+        Nombre: "",
+        email: "",
+        pass: "",
+        rol: "",
+        Estatus: 1,
+        IdUser: ""
+      });
         } else {
           toast.error("Error al registrar");
         }
@@ -75,7 +119,7 @@ if(usuarioEliminado){
         }
       }
       );    
-       
+    } 
       };
 
   return (
@@ -94,7 +138,7 @@ if(usuarioEliminado){
       <BuscaUsuario 
       usuario={usuario} 
       onSeleccionar={(item)=> setUsuarioSeleccionado(item) } 
-      onEliminar={(id)=>setUsuarioEliminado(id)} 
+      fetchUsuario={fetchUsuario}
       mostrarModal={setMostrarModal}
       />
       <br />

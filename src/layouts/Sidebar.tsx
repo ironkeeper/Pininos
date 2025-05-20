@@ -13,6 +13,7 @@ export default function Sidebar({collapsed}: SidebarProps) {
         <Link to="/dashboard" className="hover:bg-gray-700 p-2 rounded text-sm">Dashboard</Link>
         <Link to="/register" className="hover:bg-gray-700 p-2 rounded text-sm">Usuarios</Link>
         <Link to="/articulos" className="hover:bg-gray-700 p-2 rounded text-sm">Articulos</Link>
+        <Link to="/calendario" className="hover:bg-gray-700 p-2 rounded text-sm">Calendario</Link>
       </nav>
     </aside>
   );
